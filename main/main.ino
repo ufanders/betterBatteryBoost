@@ -22,6 +22,11 @@ bool gReverseDirection = false;
 CRGB leds[NUM_LEDS];
 CRGBPalette16 gPal;
 
+CHSV colorStart = CHSV(HUE_RED,255,0);  // starting color: black
+CHSV colorTarget = CHSV(HUE_RED,255,255);  // target color: red
+CHSV colorCurrent = colorStart;
+static uint8_t k, hue;
+
 #include <ButtonDebounce.h>
 
 #define BUTTON_PIN 10
@@ -134,11 +139,9 @@ void loop()
     {
       buttonDown = 1;
       Serial.println("Pressed");
-      if(!stage)
-      {
-        stage = 1;
-        stageChange = 1;
-      }
+      stage++;
+      if(stage == 7) stage = 0;
+      stageChange = 1;
     }
   }
   else
@@ -150,6 +153,75 @@ void loop()
     }
   }
 
+  if(stageChange)
+  {
+    Serial.print("Stage ");
+    Serial.println(stage);
+
+    if(k > 0)
+    {
+      k=0;
+      colorCurrent = colorTarget;
+    }
+    
+    switch(stage)
+    {
+      case 1:
+        patternActive = 1;
+        digitalWrite(BOOST_EN_PIN, HIGH); //enable voltage boost.
+        digitalWrite(LOAD_EN_PIN, HIGH); //enable load.
+        colorTarget = CHSV(HUE_RED,255,255);
+        hue = HUE_RED;
+      break;
+  
+      case 2:
+      patternActive = 1;
+      colorTarget = CHSV(HUE_GREEN,255,255);  // target color: green
+      hue = HUE_GREEN;
+      break;
+
+      case 3:
+      patternActive = 1;
+      colorTarget = CHSV(HUE_AQUA,255,255);  // target color: green
+      hue = HUE_AQUA;
+      break;
+
+      case 4:
+      patternActive = 1;
+      colorTarget = CHSV(HUE_YELLOW,255,255);  // target color: green
+      hue = HUE_YELLOW;
+      break;
+
+      case 5:
+      patternActive = 1;
+      colorTarget = CHSV(HUE_BLUE,255,255);  // target color: green
+      hue = HUE_BLUE;
+      break;
+
+      case 6:
+      patternActive = 1;
+      colorTarget = CHSV(HUE_PINK,255,255);  // target color: green
+      hue = HUE_PINK;
+      break;
+  
+      case 0:
+        patternActive = 0;
+        colorCurrent = CHSV(HUE_RED,255,0);
+        digitalWrite(BOOST_EN_PIN, LOW); //disable voltage boost.
+        digitalWrite(LOAD_EN_PIN, LOW); //disable load.
+        //USBDevice.detach();
+        //LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+        //USBDevice.attach(); //reattach to USB host.
+        //while(!SerialUSB);
+      default:
+  
+      break;
+    }
+
+    stageChange = 0;
+  }
+
+/*
   if(stageChange)
   {
     Serial.print("Stage ");
@@ -187,26 +259,36 @@ void loop()
 
     stageChange = 0;
   }
+  */
 
   if(patternActive)
   {
+    /*
     random16_add_entropy(random());
-  
-    // Fourth, the most sophisticated: this one sets up a new palette every
-    // time through the loop, based on a hue that changes every time.
-    // The palette is a gradient from black, to a dark color based on the hue,
-    // to a light color based on the hue, to white.
-    //
-    //   static uint8_t hue = 0;
-    //   hue++;
-    //   CRGB darkcolor  = CHSV(hue,255,192); // pure hue, three-quarters brightness
-    //   CRGB lightcolor = CHSV(hue,128,255); // half 'whitened', full brightness
-    //   gPal = CRGBPalette16( CRGB::Black, darkcolor, lightcolor, CRGB::White);
-  
-  
     Fire2012WithPalette(); // run simulation frame, using palette colors
-  }
+    */
+    CHSV colorTemp;
+    EVERY_N_MILLISECONDS(4)
+    {
+      if ( k < 250 ) // Check if target has been reached
+      {  
+        //colorTemp = blend(colorCurrent, colorTarget, k, FORWARD_HUES);
+        colorTemp = CHSV(hue, 255, k);
+        fill_solid( leds, NUM_LEDS, colorTemp);
+        k++;
 
+        FastLED.show(); // display this frame
+      }
+      else
+      {
+        k=0;
+        //colorCurrent = colorTarget;
+        patternActive = 0;
+      }
+    }
+  }
+  
+  /*
   if(patternFadeout)
   {
     random16_add_entropy(random());
@@ -218,6 +300,7 @@ void loop()
     FastLED.show(); // display this frame
     FastLED.delay(1000 / FRAMES_PER_SECOND);
   }
+  */
 }
 
 
