@@ -14,7 +14,7 @@
 #define CHIPSET     WS2812B
 #define NUM_LEDS    258
 
-#define BRIGHTNESS  63
+#define BRIGHTNESS  255
 #define FRAMES_PER_SECOND 60
 
 bool gReverseDirection = false;
@@ -63,6 +63,8 @@ void setup() {
 
   Serial.begin(115200);
   
+  digitalWrite(BOOST_EN_PIN, LOW);
+  pinMode(BOOST_EN_PIN, OUTPUT); //boost enable pin, normally low.
   digitalWrite(LOAD_EN_PIN, LOW);
   pinMode(LOAD_EN_PIN, OUTPUT); //load enable pin, normally low.
 
@@ -174,9 +176,9 @@ void loop()
         patternFadeout = 0;
         digitalWrite(BOOST_EN_PIN, LOW); //disable voltage boost.
         digitalWrite(LOAD_EN_PIN, LOW); //disable load.
-        USBDevice.detach();
-        LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
-        USBDevice.attach(); //reattach to USB host.
+        //USBDevice.detach();
+        //LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+        //USBDevice.attach(); //reattach to USB host.
         //while(!SerialUSB);
       default:
   
