@@ -6,6 +6,7 @@
   
   Read more on my blog post here: https://www.andersknelson.com/blog/?p=765
 */
+#define DEBUG 0
 
 #include <FastLED.h>
 
@@ -66,7 +67,7 @@ The following pins are usable for PinChangeInterrupt:
 void setup() {
   delay(2000); //sanity delay
 
-  Serial.begin(115200);
+  if(DEBUG) SerialUSB.begin(115200);
   
   digitalWrite(BOOST_EN_PIN, LOW);
   pinMode(BOOST_EN_PIN, OUTPUT); //boost enable pin, normally low.
@@ -93,7 +94,7 @@ void setup() {
 
 void intButton(void) {
   //TODO: wake up from sleep.
-  Serial.println("Button Interrupt!");
+  if(DEBUG) SerialUSB.println("Button Interrupt!");
 }
 
 void intChargeActive(void) {
@@ -101,13 +102,13 @@ void intChargeActive(void) {
   if(digitalRead(STATUS_CHRG_PIN))
   { 
     //TODO: if pin is HIGH, charge is inactive.
-    Serial.println("Not charging.");
+    if(DEBUG) SerialUSB.println("Not charging.");
   }
   else
   {
     //TODO: if pin is LOW, charge is active. 
     //Display low-power indication, use sleep modes, inhibit application.
-    Serial.println("Charging.");
+    if(DEBUG) SerialUSB.println("Charging.");
   }
 }
 
@@ -117,13 +118,13 @@ void intChargeDone(void) {
   {
     //TODO: if pin is HIGH, charge is complete.
     //Display low-power indication, use sleep modes, inhibit application.
-    Serial.println("Charge complete.");
+    if(DEBUG) SerialUSB.println("Charge complete.");
   }
   else
   {
     //TODO: if pin is LOW, charge is complete.
     //Display low-power indication, use sleep modes, inhibit application.
-    Serial.println("Charge complete.");
+    if(DEBUG) SerialUSB.println("Charge complete.");
   }
 }
 
@@ -138,7 +139,7 @@ void loop()
     if(!buttonDown)
     {
       buttonDown = 1;
-      Serial.println("Pressed");
+      if(DEBUG) SerialUSB.println("Pressed");
       stage++;
       if(stage == 7) stage = 0;
       stageChange = 1;
@@ -149,14 +150,14 @@ void loop()
     if(buttonDown)
     {
       buttonDown = 0;
-      Serial.println("Released");
+      if(DEBUG) SerialUSB.println("Released");
     }
   }
 
   if(stageChange)
   {
-    Serial.print("Stage ");
-    Serial.println(stage);
+    if(DEBUG) SerialUSB.print("Stage ");
+    if(DEBUG) SerialUSB.println(stage);
 
     if(k > 0)
     {
@@ -209,12 +210,23 @@ void loop()
         colorCurrent = CHSV(HUE_RED,255,0);
         digitalWrite(BOOST_EN_PIN, LOW); //disable voltage boost.
         digitalWrite(LOAD_EN_PIN, LOW); //disable load.
+
+        //NOTE: DO NOT UNPLUG USB UNLESS LEDS ARE OFF.
+        //If you do, the program will hang.
+        if(DEBUG) SerialUSB.println("Powering down.");
+        //SerialUSB.flush(); //does not work.
+        //SerialUSB.end();
         //USBDevice.detach();
-        //LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
-        //USBDevice.attach(); //reattach to USB host.
-        //while(!SerialUSB);
+        
+        LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+        //LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER4_OFF, TIMER3_OFF, TIMER1_OFF, \
+        TIMER0_OFF, SPI_OFF, USART1_OFF, TWI_OFF, USB_ON);
+
+        //if(SerialUSB) USBDevice.attach();
+        //SerialUSB.begin(115200);
+        if(DEBUG) SerialUSB.println("Powering up.");
+        
       default:
-  
       break;
     }
 
@@ -224,9 +236,9 @@ void loop()
 /*
   if(stageChange)
   {
-    Serial.print("Stage ");
-    Serial.println(stage);
-    //Serial.print('\n');
+    SerialUSB.print("Stage ");
+    SerialUSB.println(stage);
+    //SerialUSB.print('\n');
     
     switch(stage)
     {
@@ -251,7 +263,7 @@ void loop()
         //USBDevice.detach();
         //LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
         //USBDevice.attach(); //reattach to USB host.
-        //while(!SerialUSB);
+        //while(!SerialUSBUSB);
       default:
   
       break;
