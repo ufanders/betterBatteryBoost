@@ -114,13 +114,7 @@ void intChargeActive(void) {
 
 void intChargeDone(void) {
   
-  if(digitalRead(STATUS_DONE_PIN))
-  {
-    //TODO: if pin is HIGH, charge is complete.
-    //Display low-power indication, use sleep modes, inhibit application.
-    if(DEBUG) SerialUSB.println("Charge complete.");
-  }
-  else
+  if(!digitalRead(STATUS_DONE_PIN))
   {
     //TODO: if pin is LOW, charge is complete.
     //Display low-power indication, use sleep modes, inhibit application.
