@@ -13,7 +13,7 @@
 #define LED_PIN     2
 #define COLOR_ORDER GRB
 #define CHIPSET     WS2812B
-#define NUM_LEDS    100
+#define NUM_LEDS    140
 
 #define BRIGHTNESS  255
 
